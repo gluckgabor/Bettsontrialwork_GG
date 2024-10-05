@@ -27,9 +27,9 @@ namespace Betsson.OnlineWallets.Services
             _walletService = new OnlineWalletService(_mockRepository.Object);
         }
 
-        // Test case 1: Repository returns a valid OnlineWalletEntry
+        // Test case 1: Repository returns a valid OnlineWalletEntry when balance is zero
         [Fact]
-        public async Task GetBalanceAsync_WhenLastOnlineWalletEntryExists_ReturnsCorrectBalance()
+        public async Task GetBalance_ReturnsCorrectInitialBalance()
         {            
             var onlineWalletEntry = new OnlineWalletEntry
             {
@@ -46,6 +46,67 @@ namespace Betsson.OnlineWallets.Services
             //Assert
             Assert.Equal(0, result.Amount);
         }
+
+        // Test case 2: Repository returns a valid OnlineWalletEntry when BalanceBefore is bigger than zero
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_BalanceBeforeBiggerThanZero()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 10,
+                Amount = 0
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(10, result.Amount);
+        }
+
+        // Test case 3: Repository returns a valid OnlineWalletEntry when Amount is bigger than zero
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_AmountIsBiggerThanZero()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0,
+                Amount = 9
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(9, result.Amount);
+        }
+
+        // Test case 4: Repository returns a valid OnlineWalletEntry when BalanceBefore and Amount are bigger than zero
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_BalanceBeforeAndAmountAreBiggerThanZero()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 3,
+                Amount = 9
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(12, result.Amount);
+        }
+
 
     }
 }
