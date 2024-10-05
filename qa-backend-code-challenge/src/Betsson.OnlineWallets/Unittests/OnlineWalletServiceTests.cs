@@ -30,7 +30,16 @@ namespace Betsson.OnlineWallets.Services
         // Test case 1: Repository returns a valid OnlineWalletEntry
         [Fact]
         public async Task GetBalanceAsync_WhenLastOnlineWalletEntryExists_ReturnsCorrectBalance()
-        {
+        {            
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0,
+                Amount = 0
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
            
         }
 
