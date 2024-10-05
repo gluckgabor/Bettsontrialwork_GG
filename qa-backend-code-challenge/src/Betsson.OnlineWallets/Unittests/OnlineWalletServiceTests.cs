@@ -107,6 +107,105 @@ namespace Betsson.OnlineWallets.Services
             Assert.Equal(12, result.Amount);
         }
 
+        // Test case 5: negative numbers
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_NegativeNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = -1,
+                Amount = -9
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(-10, result.Amount);
+        }
+
+        // Test case 6: leading zero in decimal value
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_NegativeNumbers_LeadingZero()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = -01,
+                Amount = -09
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(-10, result.Amount);
+        }
+
+        // Test case 6: fractions
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_Fractions()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1.11m,
+                Amount = 3.12m
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(4.23m, result.Amount);
+        }
+
+        // Test case 6: huge numbers
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_HugeNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 100000000000000.01m,
+                Amount = 100000000000000.01m
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(200000000000000.02m, result.Amount);
+        }
+
+        // Test case 6: tiny numbers
+        [Fact]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_TinyNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0.0000000000000001m,
+                Amount = 0.0000000000000001m
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(0.0000000000000002m, result.Amount);
+        }
 
     }
 }
