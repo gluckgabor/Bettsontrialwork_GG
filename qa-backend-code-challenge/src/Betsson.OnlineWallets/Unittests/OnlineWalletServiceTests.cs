@@ -40,7 +40,11 @@ namespace Betsson.OnlineWallets.Services
                 .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
                 .ReturnsAsync(onlineWalletEntry);
 
-           
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(0, result.Amount);
         }
 
     }
