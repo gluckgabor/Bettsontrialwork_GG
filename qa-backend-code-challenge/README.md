@@ -13,11 +13,11 @@ docker build -f src/Betsson.OnlineWallets.Web/Dockerfile .
 ### Run Docker container
 
 ```
-docker run -p <port>:8080 <image id>
+docker run -p 8080:8080 <image id>
 ```
 
 ### Open Swagger
 
 ```
-http://localhost:<port>/swagger/index.html
+http://localhost:8080/swagger/index.html
 ```
