@@ -14,18 +14,20 @@ using System.Runtime.CompilerServices;
 
 namespace Betsson.OnlineWallets.Services
 {
-    public class OnlineWalletServiceTests
+    public class OnlineWalletServiceUnittests
 
     {
         private readonly Mock<IOnlineWalletRepository> _mockRepository;
         private readonly OnlineWalletService _walletService;
+        private readonly Deposit deposit;
 
-        public OnlineWalletServiceTests()
+        public OnlineWalletServiceUnittests()
         {
             // Initialize Moq repository and the service to be tested
             _mockRepository = new Mock<IOnlineWalletRepository>();
             _walletService = new OnlineWalletService(_mockRepository.Object);
-        }
+            deposit = new Deposit();
+    }
 
         // Test case 1: Repository returns a valid OnlineWalletEntry when balance is zero
         [Fact]
@@ -213,7 +215,7 @@ namespace Betsson.OnlineWallets.Services
         [InlineData(-2, 7, 5)]
         [InlineData(-1100, 1105, 5)]
         [InlineData(123433.41, -123428.41, 5)]
-        public async Task GetBalance_ReturnsCorrectInitialBalance_DataDrivenTesting_DifferentCombinationsOfAdditions(int a, int b, int expected)
+        public async Task GetBalance_ReturnsCorrectInitialBalance_DifferentCombinationsOfAdditions(int a, int b, int expected)
         {
             var onlineWalletEntry = new OnlineWalletEntry
             {
@@ -229,6 +231,142 @@ namespace Betsson.OnlineWallets.Services
 
             //Assert
             Assert.Equal(expected, result.Amount);
+        }
+
+
+        // Test case 7: 
+        [Fact]
+        public async Task DepositFunds_wholeNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1,
+                EventTime = DateTimeOffset.UtcNow
+            };
+
+            Deposit deposit = new Deposit
+            {
+                Amount = 2
+            };
+
+            _mockRepository
+                .Setup(repo => repo. GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.DepositFundsAsync(deposit);
+
+            //Assert
+            Assert.Equal(3, result.Amount);
+        }
+
+
+        // Test case 8: 
+        [Fact]
+        public async Task DepositFunds_positiveAmountDepositedWhenBalanceIsZero()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0,
+                EventTime = DateTimeOffset.UtcNow
+            };
+
+            Deposit deposit = new Deposit
+            {
+                Amount = 2
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.DepositFundsAsync(deposit);
+
+            //Assert
+            Assert.Equal(2, result.Amount);
+        }
+
+
+        // Test case 8: 
+        [Fact]
+        public async Task DepositFunds_positiveAmountDepositedWhenBalanceIsNegative()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = -10,
+                EventTime = DateTimeOffset.UtcNow
+            };
+
+            Deposit deposit = new Deposit
+            {
+                Amount = 2
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.DepositFundsAsync(deposit);
+
+            //Assert
+            Assert.Equal(-8, result.Amount);
+        }
+
+
+        // Test case 9: 
+        [Fact]
+        public async Task DepositFunds_BigNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 999999,
+                EventTime = DateTimeOffset.UtcNow
+            };
+
+            Deposit deposit = new Deposit
+            {
+                Amount = 1
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.DepositFundsAsync(deposit);
+
+            //Assert
+            Assert.Equal(1000000, result.Amount);
+        }
+
+
+
+
+
+
+
+
+
+        // Test case x: 
+        [Fact]
+        public async Task WithdrawFunds_x()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0.0000000000000001m,
+                Amount = 0.0000000000000001m
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(0.0000000000000002m, result.Amount);
         }
 
     }
