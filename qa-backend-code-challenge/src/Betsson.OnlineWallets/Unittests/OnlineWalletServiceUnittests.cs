@@ -20,6 +20,7 @@ namespace Betsson.OnlineWallets.Services
         private readonly Mock<IOnlineWalletRepository> _mockRepository;
         private readonly OnlineWalletService _walletService;
         private readonly Deposit deposit;
+        private readonly Withdrawal withdrawalAmount;
 
         public OnlineWalletServiceUnittests()
         {
@@ -27,7 +28,8 @@ namespace Betsson.OnlineWallets.Services
             _mockRepository = new Mock<IOnlineWalletRepository>();
             _walletService = new OnlineWalletService(_mockRepository.Object);
             deposit = new Deposit();
-    }
+            withdrawalAmount = new Withdrawal();
+        }
 
         // Test case 1: Repository returns a valid OnlineWalletEntry when balance is zero
         [Fact]
@@ -369,28 +371,29 @@ namespace Betsson.OnlineWallets.Services
         }
 
 
-
-
-
-
-        // Test case x: 
+        // Test case 10: 
         [Fact]
-        public async Task WithdrawFunds_x()
+        public async Task WithdrawFunds_AmountSmallerThanBalance_WholeNumbers()
         {
             var onlineWalletEntry = new OnlineWalletEntry
             {
-                BalanceBefore = 0.0000000000000001m,
-                Amount = 0.0000000000000001m
+                BalanceBefore = 1000                
             };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 1
+            };
+
             _mockRepository
                 .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
                 .ReturnsAsync(onlineWalletEntry);
 
             //Call method
-            Balance result = await _walletService.GetBalanceAsync();
+            Balance result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
 
             //Assert
-            Assert.Equal(0.0000000000000002m, result.Amount);
+            Assert.Equal(999, result.Amount);
         }
 
     }
