@@ -11,6 +11,8 @@ using Betsson.OnlineWallets.Data.Repositories;
 using Betsson.OnlineWallets.Exceptions;
 using Betsson.OnlineWallets.Models;
 using System.Runtime.CompilerServices;
+using FluentAssertions;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Betsson.OnlineWallets.Services
 {
@@ -394,6 +396,217 @@ namespace Betsson.OnlineWallets.Services
 
             //Assert
             Assert.Equal(999, result.Amount);
+        }
+
+
+        // Test case 11: 
+        [Fact]
+        public async Task WithdrawFunds_AmountSmallerThanBalance_FractionalNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1.001m
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 0.002m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            Assert.Equal(0.999m, result.Amount);
+        }
+
+
+        // Test case 11: 
+        [Fact]
+        public async Task WithdrawFunds_AmountSmallerThanBalance_NegativeAmount()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1.1m
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = -0.1m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            var result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            Assert.Equal(1.2m, result.Amount);
+        }
+
+
+        // Test case 12: 
+        [Fact]
+        public async Task WithdrawFunds_AmountSmallerThanBalance_NegativeBalance_InvalidScenario()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = -1
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = -2
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            var result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            Assert.Equal(1, result.Amount);
+        }
+
+
+        // Test case 13: 
+        [Fact]
+        public async Task WithdrawFunds_AmountSmallerThanBalance_NegativeBalance_FractionalNumber_InvalidScenario()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = -1
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = -1.01m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            var result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            Assert.Equal(0.01m, result.Amount);
+        }
+
+
+        // Test case 14: 
+        [Fact]
+        public async Task WithdrawFunds_AmountBiggerThanBalance_WholeNumber()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1000
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 2000
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Func<Task> action = async () => await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            await action.Should().ThrowExactlyAsync<InsufficientBalanceException>()
+            .WithMessage("Invalid withdrawal amount. There are insufficient funds.");
+        }
+
+
+        // Test case 15: 
+        [Fact]
+        public async Task WithdrawFunds_AmountBiggerThanBalance_FractionalNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 1000.001m
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 1000.0011m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Func<Task> action = async () => await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            await action.Should().ThrowExactlyAsync<InsufficientBalanceException>()
+            .WithMessage("Invalid withdrawal amount. There are insufficient funds.");
+        }
+
+
+        // Test case 15: 
+        [Fact]
+        public async Task WithdrawFunds_BalanceZero_FractionalNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 0.1m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Func<Task> action = async () => await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            await action.Should().ThrowExactlyAsync<InsufficientBalanceException>()
+            .WithMessage("Invalid withdrawal amount. There are insufficient funds.");
+        }
+
+
+        // Test case 15: 
+        [Fact]
+        public async Task WithdrawFunds_BalanceAndAmountToBeWithdrawedAreTheSame()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 100.01m
+            };
+
+            Withdrawal withdrawalAmount = new Withdrawal
+            {
+                Amount = 100.01m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            var result = await _walletService.WithdrawFundsAsync(withdrawalAmount);
+
+            //Assert
+            Assert.Equal(0, result.Amount);
         }
 
     }
