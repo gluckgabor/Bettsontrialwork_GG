@@ -3,17 +3,17 @@
 A short summary of the feature
 
 @tag1
-Scenario: [scenario name1]
-	Given I have a wallet with balance zero
+Scenario: [Initial balance zero, valid amount deposited]
+	Given I have a wallet with balance zero before deposit
 	When I deposit valid value
-	Then I get response of correct new balance
+	Then I get response of correct new balance containing deposited amount
 
-Scenario: [scenario name2]
-	Given I have a wallet with balance zero
+Scenario: [Invalid value attempted to be deposited]
+	Given I have a wallet with balance zero before deposit
 	When I deposit invalid value
 	Then I get response of validation/error message
 
-Scenario: [scenario name3]
-	Given I have a wallet with balance bigger then zero
+Scenario: [Initial value bigger than zero, valid amount deposited]
+	Given I have a wallet with balance bigger then zero before deposit
 	When I deposit valid value
-	Then I get response of correct new balance
+	Then I get response of correct new balance containing deposited amount
