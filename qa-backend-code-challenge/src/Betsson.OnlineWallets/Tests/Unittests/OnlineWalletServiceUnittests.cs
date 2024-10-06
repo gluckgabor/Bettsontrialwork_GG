@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 using FluentAssertions;
 using static System.Collections.Specialized.BitVector32;
 
-namespace Betsson.OnlineWallets.Services
+namespace Betsson.OnlineWallets.Tests.Unittests
 {
     public class OnlineWalletServiceUnittests
 
@@ -36,7 +36,7 @@ namespace Betsson.OnlineWallets.Services
         // Test case 1: Repository returns a valid OnlineWalletEntry when balance is zero
         [Fact]
         public async Task GetBalance_ReturnsCorrectInitialBalance()
-        {            
+        {
             var onlineWalletEntry = new OnlineWalletEntry
             {
                 BalanceBefore = 0,
@@ -254,7 +254,7 @@ namespace Betsson.OnlineWallets.Services
             };
 
             _mockRepository
-                .Setup(repo => repo. GetLastOnlineWalletEntryAsync())
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
                 .ReturnsAsync(onlineWalletEntry);
 
             //Call method
@@ -379,7 +379,7 @@ namespace Betsson.OnlineWallets.Services
         {
             var onlineWalletEntry = new OnlineWalletEntry
             {
-                BalanceBefore = 1000                
+                BalanceBefore = 1000
             };
 
             Withdrawal withdrawalAmount = new Withdrawal

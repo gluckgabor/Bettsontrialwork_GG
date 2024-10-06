@@ -1,4 +1,4 @@
-﻿namespace Betsson.OnlineWallets.Unittests
+﻿namespace Betsson.OnlineWallets.Tests.Unittests
 {
     internal interface IMyRepository
     {
