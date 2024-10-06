@@ -207,5 +207,29 @@ namespace Betsson.OnlineWallets.Services
             Assert.Equal(0.0000000000000002m, result.Amount);
         }
 
+
+        // Test case 6: data driven test
+        [Theory]
+        [InlineData(-2, 7, 5)]
+        [InlineData(-1100, 1105, 5)]
+        [InlineData(123433.41, -123428.41, 5)]
+        public async Task GetBalance_ReturnsCorrectInitialBalance_DataDrivenTesting_DifferentCombinationsOfAdditions(int a, int b, int expected)
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = a,
+                Amount = b
+            };
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.GetBalanceAsync();
+
+            //Assert
+            Assert.Equal(expected, result.Amount);
+        }
+
     }
 }
