@@ -342,7 +342,31 @@ namespace Betsson.OnlineWallets.Services
         }
 
 
+        // Test case 9: 
+        [Fact]
+        public async Task DepositFunds_FractionalNumbers()
+        {
+            var onlineWalletEntry = new OnlineWalletEntry
+            {
+                BalanceBefore = 0.999999m,
+                EventTime = DateTimeOffset.UtcNow
+            };
 
+            Deposit deposit = new Deposit
+            {
+                Amount = 0.000002m
+            };
+
+            _mockRepository
+                .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+                .ReturnsAsync(onlineWalletEntry);
+
+            //Call method
+            Balance result = await _walletService.DepositFundsAsync(deposit);
+
+            //Assert
+            Assert.Equal(1.000001m, result.Amount);
+        }
 
 
 
