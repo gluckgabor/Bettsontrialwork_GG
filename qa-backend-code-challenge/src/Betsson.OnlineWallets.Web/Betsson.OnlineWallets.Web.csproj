@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <OutputType>Library</OutputType>
     <StartupObject>Betsson.OnlineWallets.Web.Program</StartupObject>
+	<EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +25,6 @@
     <PackageReference Include="RestSharp" Version="112.1.0" />
     <PackageReference Include="SpecFlow" Version="3.9.74" />
     <PackageReference Include="SpecFlow.Assist.Dynamic" Version="1.4.2" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
     <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Betsson.OnlineWallets\Betsson.OnlineWallets.csproj" />
+	<Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
