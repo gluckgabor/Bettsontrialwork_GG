@@ -94,15 +94,25 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
 
             // Optionally, check the error message content
             var errorResponse = _response.Content;
-            Assert.True(errorResponse.Contains("Invalid deposit amount"), "Error message does not match expected.");
+            Assert.True(errorResponse.Contains("'Amount' must be greater than or equal to '0'."), "Error message does not match expected.");
+        }
+
+        [Given(@"I query the balance")]
+        public async Task WhenIQueryTheBalance()
+        {
+            _request = new RestRequest("/onlinewallet/balance", Method.Get);
+            _response = await _client.ExecuteAsync(_request);
         }
 
         // Scenario: [Initial value bigger than zero, valid amount deposited]
-        [Given(@"I have a wallet with balance bigger than zero before deposit")]
+        [Given(@"I have a wallet with balance bigger then zero before deposit")]
         public void GivenIHaveAWalletWithBalanceBiggerThanZero()
         {
+            // Deserialize the response content into a Balance object
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_response.Content);
+
             // Setting an initial positive balance
-            _currentBalance = 200;  // Example: Wallet starts with 200
+            _currentBalance = balanceResponse.Amount;  // Example: Wallet starts with 200
         }
 
         //[When(@"I deposit valid value")]
