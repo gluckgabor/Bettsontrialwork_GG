@@ -132,7 +132,7 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
             _post_deposit_response = await _client.ExecuteAsync(_post_deposit_request);
         }
 
-        [Then(@"I get response of validation/error message")]
+        [Then(@"I get a response of validation/error message")]
         public void ThenIGetResponseOfValidationErrorMessage()
         {
             // Ensure the response is a validation or bad request error

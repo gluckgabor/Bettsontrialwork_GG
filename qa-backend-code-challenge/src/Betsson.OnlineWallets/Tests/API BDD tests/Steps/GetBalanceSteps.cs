@@ -19,28 +19,46 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         private RestResponse _response;
         private decimal _expectedBalance;
 
+        private decimal _depositAmount;
+
+        private RestRequest _get_balance_request;
+        private RestResponse _get_balance_response;
+
+        private RestRequest _post_deposit_request;
+        private RestResponse _post_deposit_response;
+
         public GetBalanceSteps()
         {
             _client = new RestClient("http://localhost:8080");
         }
 
-        [Given(@"I have a wallet with balance zero")]
+        [Given(@"I have a wallet with balance zero before querying balance")]
         public void GivenIHaveAWalletWithBalanceZero()
         {
             // Set expected balance to zero for this scenario
             _expectedBalance = 0;
-
-            // In a real system, this might involve setting up a mock repository or 
-            // clearing wallet transactions in a test environment.
         }
 
-        [Given(@"I have a wallet with balance bigger than zero")]
+        [Given(@"I make a deposit of (.*)")]
+        public async Task GivenIMakeADeposit(decimal _depositAmount)
+        {
+            // Example: Deposit a valid amount of 100
+            //_depositAmount = 100;
+            //decimal Amount;
+            // Prepare the deposit request
+            var deposit = new { Amount = _depositAmount };
+            _post_deposit_request = new RestRequest("/onlinewallet/deposit", Method.Post);
+            _post_deposit_request.AddJsonBody(deposit);
+
+            // Execute the request
+            _post_deposit_response = await _client.ExecuteAsync(_post_deposit_request);
+        }
+
+        [Given(@"as a result I have a wallet with balance bigger than zero before balance query")]
         public void GivenIHaveAWalletWithBalanceBiggerThanZero()
         {
             // Set expected balance to a non-zero value for this scenario
-            _expectedBalance = 100;  // Example: set expected balance to 100
-
-            // In a real system, you would probably set up some transactions to reach this balance.
+            _expectedBalance = 100;
         }
 
         [When(@"I query the balance")]
