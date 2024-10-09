@@ -16,8 +16,8 @@ Scenario: [Withdrawing same amount as balance]
 
 	Scenario: [Attempting to withdraw more than the balance]
 	Given I have a wallet with balance zero
-	When I withdraw valid value
-	Then I get response of "no sufficient funds".
+	When I attempt to withdraw positive value
+	Then I get response of no sufficient funds
 
 Scenario: [Attempting to withdraw invalid value]
 	Given I have a wallet with balance zero
