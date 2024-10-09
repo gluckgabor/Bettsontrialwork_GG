@@ -9,6 +9,9 @@ using TechTalk.SpecFlow;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading.Tasks;
+using Betsson.OnlineWallets.Data.Repositories;
+using Betsson.OnlineWallets.Data.Models;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
 namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
 {
@@ -17,9 +20,21 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         public class WithdrawSteps
             {
             private RestClient _client;
-            private RestRequest _request;
-            private RestResponse _response;
+
+            private RestRequest _get_balance_request;
+            private RestResponse _get_balance_response;
+
+            private RestRequest _post_deposit_request;
+            private RestResponse _post_deposit_response;
+
+            private RestRequest _post_withdraw_request;
+            private RestResponse _post_withdraw_response;
+
+            private decimal _depositAmount;
+
             private decimal _currentBalance;
+
+            private readonly IOnlineWalletRepository _onlineWalletRepository;
 
             public WithdrawSteps()
             {
@@ -28,60 +43,76 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
 
             // Scenario: Withdrawing valid amount being smaller than balance
             [Given(@"I have a wallet with balance bigger than zero")]
-            public void GivenIHaveAWalletWithBalanceBiggerThanZero()
+            public async void GivenIHaveAWalletWithBalanceBiggerThanZero()
             {
-                // Assume the initial balance is 500 for the sake of the scenario
-                _currentBalance = 500;
+            // Example: Deposit a valid amount of 100
+            _depositAmount = 100;
+
+            // Prepare the deposit request
+            var deposit = new { Amount = _depositAmount };
+            _post_deposit_request = new RestRequest("/onlinewallet/deposit", Method.Post);
+            _post_deposit_request.AddJsonBody(deposit);
+
+            // Execute the request
+            _post_deposit_response = await _client.ExecuteAsync(_post_deposit_request);
             }
 
             [When(@"I withdraw valid value")]
             public async Task WhenIWithdrawValidValue()
             {
                 // Assume withdrawing 100 for this scenario
-                var withdrawalAmount = 100;
+                var withdrawalAmount = 50;
 
                 var withdrawal = new { Amount = withdrawalAmount };
-                _request = new RestRequest("/onlinewallet/withdraw", Method.Post);
-                _request.AddJsonBody(withdrawal);
+                _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(withdrawal);
 
                 // Execute the request
-                _response = await _client.ExecuteAsync(_request);
+                _post_withdraw_response = await _client.ExecuteAsync(_post_withdraw_request);
             }
 
-            [Then(@"I get response of correct new balance")]
-            public void ThenIGetResponseOfCorrectNewBalance()
+            [Then(@"I get response of correct new balance bigger than zero")]
+            public async void ThenIGetResponseOfCorrectNewBalance()
             {
-                Assert.Equal(HttpStatusCode.OK, _response.StatusCode);
+                _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+                _get_balance_response = await _client.ExecuteAsync(_get_balance_request);
+                var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+                var expectedBalance = balanceResponse.Amount;  // Expected new balance after withdrawal
+
+                Assert.Equal(HttpStatusCode.OK, _post_withdraw_response.StatusCode);
 
                 // Deserialize the response and validate the new balance
-                var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_response.Content);
-                var expectedBalance = _currentBalance - 100;  // Expected new balance after withdrawal
+                var withdrawResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_post_withdraw_response.Content);
+                
 
-                Assert.Equal(expectedBalance, balanceResponse.Amount);
+                Assert.Equal(expectedBalance, withdrawResponse.Amount);
             }
 
             // Scenario: Withdrawing same amount as balance
             [When(@"I withdraw same amount as balance")]
             public async Task WhenIWithdrawSameAmountAsBalance()
             {
-                // Withdraw the entire balance
-                var withdrawalAmount = _currentBalance;
+                _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+                _get_balance_response = await _client.ExecuteAsync(_get_balance_request);
+                var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+
+                var withdrawalAmount = balanceResponse.Amount;
 
                 var withdrawal = new { Amount = withdrawalAmount };
-                _request = new RestRequest("/onlinewallet/withdraw", Method.Post);
-                _request.AddJsonBody(withdrawal);
+                _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(withdrawal);
 
                 // Execute the request
-                _response = await _client.ExecuteAsync(_request);
+                _post_withdraw_response = await _client.ExecuteAsync(_post_withdraw_request);
             }
 
-            [Then(@"I get response of correct new balance")]
+            [Then(@"I get response of correct new balance as zero")]
             public void ThenIGetResponseOfCorrectNewBalanceAfterFullWithdrawal()
             {
-                Assert.Equal(HttpStatusCode.OK, _response.StatusCode);
+                Assert.Equal(HttpStatusCode.OK, _post_withdraw_response.StatusCode);
 
                 // Deserialize the response and validate the new balance
-                var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_response.Content);
+                var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_post_withdraw_response.Content);
                 var expectedBalance = 0;  // Balance should be zero after full withdrawal
 
                 Assert.Equal(expectedBalance, balanceResponse.Amount);
@@ -102,20 +133,20 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
                 var withdrawalAmount = 100;
 
                 var withdrawal = new { Amount = withdrawalAmount };
-                _request = new RestRequest("/onlinewallet/withdraw", Method.Post);
-                _request.AddJsonBody(withdrawal);
+                _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(withdrawal);
 
                 // Execute the request
-                _response = await _client.ExecuteAsync(_request);
+                _post_withdraw_response = await _client.ExecuteAsync(_post_withdraw_request);
             }
 
             [Then(@"I get response of no sufficient funds")]
             public void ThenIGetResponseOfNoSufficientFunds()
             {
-                Assert.Equal(HttpStatusCode.BadRequest, _response.StatusCode);
+                Assert.Equal(HttpStatusCode.BadRequest, _post_withdraw_response.StatusCode);
 
                 // Check for specific error message
-                var errorResponse = _response.Content;
+                var errorResponse = _post_withdraw_response.Content;
                 Assert.True(errorResponse.Contains("Invalid withdrawal amount. There are insufficient funds."), "Expected 'no sufficient funds' message.");
             }
 
@@ -127,20 +158,20 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
                 var invalidWithdrawalAmount = -50;
 
                 var withdrawal = new { Amount = invalidWithdrawalAmount };
-                _request = new RestRequest("/onlinewallet/withdraw", Method.Post);
-                _request.AddJsonBody(withdrawal);
+                _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(withdrawal);
 
                 // Execute the request
-                _response = await _client.ExecuteAsync(_request);
+                _post_withdraw_response = await _client.ExecuteAsync(_post_withdraw_request);
             }
 
             [Then(@"I get response of validation/error message")]
             public void ThenIGetResponseOfValidationErrorMessage()
             {
-                Assert.Equal(HttpStatusCode.BadRequest, _response.StatusCode);
+                Assert.Equal(HttpStatusCode.BadRequest, _post_withdraw_response.StatusCode);
 
                 // Optionally check for the specific error message content
-                var errorResponse = _response.Content;
+                var errorResponse = _post_withdraw_response.Content;
                 Assert.True(errorResponse.Contains("'Amount' must be greater than or equal to '0'."), "Error message does not match expected.");
             }
         }

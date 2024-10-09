@@ -64,18 +64,18 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         [When(@"I query the balance")]
         public async Task WhenIQueryTheBalance()
         {
-            _request = new RestRequest("/onlinewallet/balance", Method.Get);
-            _response = await _client.ExecuteAsync(_request);
+            _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+            _get_balance_response = await _client.ExecuteAsync(_request);
         }
 
         [Then(@"I get response of correct balance")]
         public void ThenIGetResponseOfCorrectBalance()
         {
             // Check if the response is OK
-            Assert.Equal(HttpStatusCode.OK, _response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, _get_balance_response.StatusCode);
 
             // Deserialize the response content into a Balance object
-            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_response.Content);
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
 
             // Assert that the returned balance matches the expected balance
             Assert.Equal(_expectedBalance, balanceResponse.Amount);
