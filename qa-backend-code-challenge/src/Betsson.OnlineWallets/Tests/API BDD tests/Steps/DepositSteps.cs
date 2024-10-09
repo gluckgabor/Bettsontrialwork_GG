@@ -17,12 +17,8 @@ using Betsson.OnlineWallets.Models;
 
 namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
 {
-    internal class DepositSteps
-    {
-    }
-
     [Binding]
-    public class DepositFundsAsync
+    public class DepositSteps
     {
         private RestClient _client;
 
@@ -39,7 +35,7 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         private decimal _currentBalance;
         private decimal _depositAmount;
 
-        public DepositFundsAsync()
+        public DepositSteps()
         {
             _client = new RestClient("http://localhost:8080");
         }
@@ -50,7 +46,7 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         {
             RestClient _client = new RestClient("http://localhost:8080");
 
-            //todo: getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
+            //getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
             RestRequest _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
             RestResponse _get_balance_response = _client.Execute(_get_balance_request);
             // Deserialize the response content into a Balance object
@@ -64,6 +60,27 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
                 // Execute the request
                 RestResponse _post_withdraw_response = _client.Execute(_post_withdraw_request);
             }            
+        }
+
+        [AfterScenario]
+        public static void TearDown()
+        {
+            RestClient _client = new RestClient("http://localhost:8080");
+
+            //getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
+            RestRequest _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+            RestResponse _get_balance_response = _client.Execute(_get_balance_request);
+            // Deserialize the response content into a Balance object
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+
+            if (balanceResponse.Amount > 0)
+            {
+                RestRequest _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(balanceResponse);
+
+                // Execute the request
+                RestResponse _post_withdraw_response = _client.Execute(_post_withdraw_request);
+            }
         }
 
         // Scenario: [Initial balance zero, valid amount deposited]

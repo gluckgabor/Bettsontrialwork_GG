@@ -32,6 +32,50 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
             _client = new RestClient("http://localhost:8080");
         }
 
+        // Setup before each scenario
+        [BeforeScenario]
+        public static void SetUp()
+        {
+            RestClient _client = new RestClient("http://localhost:8080");
+
+            //getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
+            RestRequest _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+            RestResponse _get_balance_response = _client.Execute(_get_balance_request);
+            // Deserialize the response content into a Balance object
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+
+            if (balanceResponse.Amount > 0)
+            {
+                RestRequest _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(balanceResponse);
+
+                // Execute the request
+                RestResponse _post_withdraw_response = _client.Execute(_post_withdraw_request);
+            }
+        }
+
+        [AfterScenario]
+        public static void TearDown()
+        {
+            RestClient _client = new RestClient("http://localhost:8080");
+
+            //getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
+            RestRequest _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+            RestResponse _get_balance_response = _client.Execute(_get_balance_request);
+            // Deserialize the response content into a Balance object
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+
+            if (balanceResponse.Amount > 0)
+            {
+                RestRequest _post_withdraw_request = new RestRequest("/onlinewallet/withdraw", Method.Post);
+                _post_withdraw_request.AddJsonBody(balanceResponse);
+
+                // Execute the request
+                RestResponse _post_withdraw_response = _client.Execute(_post_withdraw_request);
+            }
+        }
+
+        //Scenario: [Get initial zero balance]
         [Given(@"I have a wallet with balance zero before querying balance")]
         public void GivenIHaveAWalletWithBalanceZero()
         {
@@ -39,6 +83,27 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
             _expectedBalance = 0;
         }
 
+        [When(@"I query the balance")]
+        public async Task WhenIQueryTheBalance()
+        {
+            _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
+            _get_balance_response = await _client.ExecuteAsync(_get_balance_request);
+        }
+
+        [Then(@"I get response of correct balance")]
+        public void ThenIGetResponseOfCorrectBalance()
+        {
+            // Check if the response is OK
+            Assert.Equal(HttpStatusCode.OK, _get_balance_response.StatusCode);
+
+            // Deserialize the response content into a Balance object
+            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
+
+            // Assert that the returned balance matches the expected balance
+            Assert.Equal(_expectedBalance, balanceResponse.Amount);
+        }
+
+        //Scenario: [Get positive balance]	
         [Given(@"I make a deposit of (.*)")]
         public async Task GivenIMakeADeposit(decimal _depositAmount)
         {
@@ -59,27 +124,7 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         {
             // Set expected balance to a non-zero value for this scenario
             _expectedBalance = 100;
-        }
-
-        [When(@"I query the balance")]
-        public async Task WhenIQueryTheBalance()
-        {
-            _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
-            _get_balance_response = await _client.ExecuteAsync(_request);
-        }
-
-        [Then(@"I get response of correct balance")]
-        public void ThenIGetResponseOfCorrectBalance()
-        {
-            // Check if the response is OK
-            Assert.Equal(HttpStatusCode.OK, _get_balance_response.StatusCode);
-
-            // Deserialize the response content into a Balance object
-            var balanceResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<Balance>(_get_balance_response.Content);
-
-            // Assert that the returned balance matches the expected balance
-            Assert.Equal(_expectedBalance, balanceResponse.Amount);
-        }
+        }       
     }
 
     public class Balance
