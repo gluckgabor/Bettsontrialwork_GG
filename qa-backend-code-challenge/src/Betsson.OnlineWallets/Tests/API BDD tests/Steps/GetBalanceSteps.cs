@@ -21,11 +21,14 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
 
         private decimal _depositAmount;
 
-        private RestRequest _get_balance_request;
-        private RestResponse _get_balance_response;
+        private static RestRequest _get_balance_request;
+        private static RestResponse _get_balance_response;
 
-        private RestRequest _post_deposit_request;
-        private RestResponse _post_deposit_response;
+        private static RestRequest _post_deposit_request;
+        private static RestResponse _post_deposit_response;
+
+        private static RestRequest _post_withdraw_request;
+        private static RestResponse _post_withdraw_response;
 
         public GetBalanceSteps()
         {
@@ -37,6 +40,12 @@ namespace Betsson.OnlineWallets.Tests.API_BDD_tests.Steps
         public static void SetUp()
         {
             RestClient _client = new RestClient("http://localhost:8080");
+
+            _post_deposit_request = null;
+            _post_deposit_response = null;
+
+            _post_withdraw_request = null;
+            _post_withdraw_response = null;
 
             //getbalance, if balance greater than zero, do a withdraw with same amount to achieve zero balance
             RestRequest _get_balance_request = new RestRequest("/onlinewallet/balance", Method.Get);
